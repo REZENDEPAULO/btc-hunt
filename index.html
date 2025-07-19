@@ -1,29 +1,269 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BTC Hunt - Paulo Rezende</title>
-  <style>
-    body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 20px; }
-    .btn { background: gold; color: black; padding: 10px 20px; border: none; margin: 10px; cursor: pointer; font-size: 18px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BTC Hunt - Paulo Rezende</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    background: #111;
+    color: #fff;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh;
+  }
+  .hidden { display: none; }
+  #login, #game {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  #login {
+    margin-top: 100px;
+  }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+  }
+  button {
+    background: gold;
+    border: none;
+    color: black;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 0 8px gold;
+    margin-top: 10px;
+  }
+  #status {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #6b5128;
+    text-align: center;
+  }
+  #roulette-container {
+    margin: 30px 0;
+    position: relative;
+    width: 250px; height: 250px;
+  }
+  #roulette {
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    border: 6px solid gold;
+    background: conic-gradient(
+      gold 0deg 60deg,
+      darkgoldenrod 60deg 120deg,
+      gold 120deg 180deg,
+      darkgoldenrod 180deg 240deg,
+      gold 240deg 300deg,
+      darkgoldenrod 300deg 360deg
+    );
+    transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  #pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; 
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid red;
+    z-index: 10;
+  }
+  #spinBtn {
+    margin-top: 15px;
+  }
+  #result {
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 16px;
+    min-height: 80px;
+  }
+  #keyImage {
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100px;
+    user-select: none;
+  }
+  #saldoTotal {
+    font-size: 20px;
+    margin-top: 20px;
+    font-weight: bold;
+  }
+  #historico {
+    margin-top: 30px;
+    text-align: left;
+    max-width: 100%;
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+    height: 160px;
+    overflow-y: auto;
+    font-size: 14px;
+    font-family: monospace;
+  }
+</style>
 </head>
 <body>
-  <h1>BTC Hunt</h1>
-  <p>Jogo de Caça ao Tesouro de Bitcoins por Paulo Rezende</p>
-  <button class="btn" onclick="tentarChave()">Tentar Encontrar BTC</button>
-  <div id="resultado"></div>
 
-  <script>
-    let tentativas = 0;
-    function tentarChave() {
-      tentativas++;
-      const achou = Math.random() < 0.01; // 1% de chance
-      document.getElementById("resultado").innerText = achou 
-        ? `🎉 Você achou um endereço com satoshis! Tentativas: ${tentativas}` 
-        : `Nada encontrado ainda. Tentativas: ${tentativas}`;
+<div id="login">
+  <h2>Entrar no BTC Hunt</h2>
+  <input type="text" id="username" placeholder="Nome de jogador" />
+  <input type="password" id="password" placeholder="Senha" />
+  <button id="loginBtn">Entrar / Cadastrar</button>
+  <div id="loginStatus"></div>
+</div>
+
+<div id="game" class="hidden">
+  <h1>BTC Hunt</h1>
+  <div id="saldoTotal">Saldo: 0 sats</div>
+  <div id="roulette-container">
+    <div id="pointer"></div>
+    <div id="roulette"></div>
+  </div>
+  <button id="spinBtn">Girar Roleta</button>
+  <div id="result"></div>
+  <img id="keyImage" class="hidden" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxLVd9AAAABHNCSVQICAgIfAhkiAAAAnRJREFUaIHt3cENgjAYxvF//1U3Q7ULSbbYk48kLZtQhU8cLPkYUB1Zw7Xlt4Q91U1r09OCcBBP8l2ApsBX5m7SxOqMqafpNHbFjAUXAGuhNJnshExnK8n3oAARsgMhABMgAQyQH3J+6T1z0d1J5HkDCq57vtLwgAgRggggAAAQQCCCAAAEEEEAAAQQQgQIEAC7UBsiW+HEG1UPpMeMtcN63U92zG1f57NgAh8j5YX0HXkxIqWcgPrfEAiC06TtDdMxB4LY24WxG/pxS1+ZlyGLmMJuC9iDHx5YzshbDrhk7FcQr5nYN1C9Nz83qCW7r09L/ckFzm48NIKVjR3Fjj4wZSCFwi5fK2DCeEzFbW+DDABSCNwZXzIr91yxJzmGAkmBY8s1lKJAKlwzntxZ3mkxHk8qkD0lfX69ovb46AMqzq9z59fPbCxewW/KV5HkMApknPhN6S9oVxvTQHw7BhgDqHCWfIBADILw3YJKCIzi4VvYYBiDYxH5fBGCG6IoUFBWCcRsQ+UIIxA6Eg+QZhEHKLyCAhYJvMp8EaHDJZEZ2fRBhKHAsYFX5RyD2JCYQQq8pHEMrJfU8wCwsh4dhxj3Aghx52PCBBhg3HiD3ZyRyCy1DCBcMEPDBkRxy+CAIQhMAAg0gkP65u+n4+6HvXhxGghQ6NwEEfRQ7aAAAgT4YJNZJJjKcT0LZYZXfXczhB8fjxxQgh4EAACCCBAAIIIEAAgggQACCCBAAAIIIEAACCGxfwA63oX+8/lnD/gAAAABJRU5ErkJggg==" alt="Chave Dourada" />
+
+  <div id="historico"><strong>Histórico de achados:</strong><br /></div>
+  <button id="logoutBtn" style="margin-top: 20px; background: #c00; color: white;">Sair</button>
+</div>
+
+<script>
+  const loginDiv = document.getElementById('login');
+  const gameDiv = document.getElementById('game');
+  const loginBtn = document.getElementById('loginBtn');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const loginStatus = document.getElementById('loginStatus');
+
+  const spinBtn = document.getElementById('spinBtn');
+  const roulette = document.getElementById('roulette');
+  const pointer = document.getElementById('pointer');
+  const resultDiv = document.getElementById('result');
+  const keyImage = document.getElementById('keyImage');
+  const saldoTotalEl = document.getElementById('saldoTotal');
+  const historicoEl = document.getElementById('historico');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  let currentUser = null;
+  let users = JSON.parse(localStorage.getItem('btcUsers') || '{}');
+  let saldoTotal = 0;
+  let historico = [];
+
+  function saveUsers() {
+    localStorage.setItem('btcUsers', JSON.stringify(users));
+  }
+
+  function login() {
+    const user = usernameInput.value.trim();
+    const pass = passwordInput.value.trim();
+
+    if (!user || !pass) {
+      loginStatus.textContent = 'Por favor, preencha usuário e senha.';
+      return;
     }
-  </script>
-</body>
-</html>
+
+    if (!users[user]) {
+      // cadastra novo usuário
+      users[user] = { password: pass, saldo: 0, historico: [] };
+      loginStatus.textContent = 'Usuário cadastrado! Entrando...';
+    } else {
+      if (users[user].password !== pass) {
+        loginStatus.textContent = 'Senha incorreta!';
+        return;
+      }
+      loginStatus.textContent = 'Bem-vindo de volta, ' + user + '!';
+    }
+    currentUser = user;
+    saldoTotal = users[user].saldo;
+    historico = users[user].historico;
+    updateSaldo();
+    updateHistorico();
+    showGame();
+    saveUsers();
+  }
+
+  function logout() {
+    currentUser = null;
+    saldoTotal = 0;
+    historico = [];
+    usernameInput.value = '';
+    passwordInput.value = '';
+    loginStatus.textContent = '';
+    loginDiv.classList.remove('hidden');
+    gameDiv.classList.add('hidden');
+  }
+
+  function showGame() {
+    loginDiv.classList.add('hidden');
+    gameDiv.classList.remove('hidden');
+    resultDiv.textContent = '';
+    keyImage.classList.add('hidden');
+  }
+
+  loginBtn.addEventListener('click', login);
+  logoutBtn.addEventListener('click', logout);
+
+  function updateSaldo() {
+    saldoTotalEl.textContent = `Saldo: ${saldoTotal} sats`;
+  }
+
+  function updateHistorico() {
+    historicoEl.innerHTML = '<strong>Histórico de achados:</strong><br/>' + historico.map((h, i) =>
+      `${i + 1}: ${h.sats} sats — <code>${h.address}</code>`
+    ).join('<br/>');
+  }
+
+  let spinning = false;
+  let rotation = 0;
+
+  spinBtn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    resultDiv.textContent = '';
+    keyImage.classList.add('hidden');
+
+    // gira a roleta com rotação aleatória entre 3 e 6 voltas
+    const extraRotation = Math.floor(Math.random() * 360);
+    rotation += 360 * (3 + Math.floor(Math.random() * 4)) + extraRotation;
+
+    roulette.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
+    roulette.style.transform = `rotate(${rotation}deg)`;
+
+    // resultado após a rotação
+    setTimeout(() => {
+      spinning = false;
+
+      // calcular resultado pelo ângulo final
+      const normalizedRotation = rotation % 360;
+      // dividir roleta em 6 partes de 60°
+      const sector = Math.floor(normalizedRotation / 60);
+      // vamos supor que os setores pares são "ganhou", impares "perdeu"
+      const ganhou = sector % 2 === 0 && Math.random() < 0.7; // 70% chance de ganhar se setor for par
+
+      if (ganhou) {
+        const satsGanhos = Math.floor(Math.random() * 5000) + 100;
+        const endereco = gerarEnderecoFake();
+        saldoTotal += satsGanhos;
+        historico.push({ sats: satsGanhos, address: endereco });
+        updateSaldo();
+        updateHistorico();
+        resultDiv.textContent = '🎉 Você achou uma chave dourada! Clique nela para revelar o BTC.';
+        keyImage.classList.remove('hidden');
+
+        keyImage.onclick = () => {
+          alert(`Chave privada:\n${endereco}\n\nValor:
