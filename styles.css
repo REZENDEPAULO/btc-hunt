@@ -26,7 +26,7 @@ h2 {
   max-width: 500px;
   height: 300px;
   margin: auto;
-  background: url('https://i.imgur.com/RTF02WY.png') no-repeat center/cover;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5AgREywBWQBd9gAAAQlJREFUeNrtwQEBAAAAgiD/r25IQAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgP8NAAFDNwlYAAIu2Y1cAAAAASUVORK5CYII=') no-repeat center/cover;
   position: relative;
   border: 3px solid #4b3b1b;
   border-radius: 10px;
@@ -37,6 +37,8 @@ h2 {
   position: absolute;
   cursor: pointer;
   user-select: none;
+  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPklEQVRoge3PMQ0AAAjDMO5fNExhNChRNnqH4kP4+T7u6UiZEmSJEmSJEmSJEmSJEmSJEmSJEmSJEkh9EYIjFvUASyEZLQAAAABJRU5ErkJggg==') no-repeat center center;
+  background-size: contain;
 }
 
 #status {
