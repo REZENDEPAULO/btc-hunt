@@ -266,5 +266,15 @@
         keyImage.classList.remove('hidden');
 
         keyImage.onclick = () => {
-          alert(`Chave privada:\n${endereco}\n\nValor:
-          <script src="login.js"></script>
+          alert(`🔑 Chave privada:\n${endereco}\n\n💰 Valor: ${satsGanhos} sats`);
+          keyImage.classList.add('hidden');
+        };
+      } else {
+        resultDiv.textContent = 'Nada encontrado desta vez. Tente novamente!';
+      }
+    }, 4200);
+  });
+</script>
+
+</body>
+</html>
