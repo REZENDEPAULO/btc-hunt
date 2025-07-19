@@ -16,13 +16,12 @@ const positions = [
 
 function createKeys() {
   positions.forEach((pos, i) => {
-    const img = document.createElement('img');
-    img.src = 'assets/key.png'; // imagem da chave
-    img.className = 'key';
-    img.style.top = pos.top;
-    img.style.left = pos.left;
-    img.addEventListener('click', () => handleClick(i));
-    map.appendChild(img);
+    const keyDiv = document.createElement('div');
+    keyDiv.className = 'key';
+    keyDiv.style.top = pos.top;
+    keyDiv.style.left = pos.left;
+    keyDiv.addEventListener('click', () => handleClick(i));
+    map.appendChild(keyDiv);
   });
 }
 
