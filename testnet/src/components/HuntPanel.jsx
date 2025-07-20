@@ -1,15 +1,13 @@
-import HuntPanel from './components/HuntPanel';
 import React, { useState } from 'react';
 
 function HuntPanel() {
   const [saldo, setSaldo] = useState(0);
   const [historico, setHistorico] = useState([]);
 
-  // Simula a chance de encontrar satoshis na roleta
   const girarRoleta = () => {
-    const encontrou = Math.random() < 0.3; // 30% chance de encontrar algo
+    const encontrou = Math.random() < 0.3;
     if (encontrou) {
-      const sats = Math.floor(Math.random() * 1000) + 50; // de 50 a 1050 sats
+      const sats = Math.floor(Math.random() * 1000) + 50;
       setSaldo(saldo + sats);
       setHistorico([{ sats, data: new Date().toLocaleString() }, ...historico]);
     } else {
