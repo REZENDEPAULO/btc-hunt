@@ -1,10 +1,13 @@
-import React from "react";
-import Home from "./components/Home";
+import React from 'react';
+import Home from './components/Home';
+import { WalletProvider } from './wallet';
 
 export default function App() {
   return (
-    <div style={{ fontFamily: "Arial", padding: 20, maxWidth: 600, margin: "auto" }}>
-      <Home />
-    </div>
+    <WalletProvider>
+      <div style={{ fontFamily: 'Arial', padding: 20, maxWidth: 600, margin: 'auto' }}>
+        <Home />
+      </div>
+    </WalletProvider>
   );
 }
