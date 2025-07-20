@@ -1,12 +1,12 @@
-import HuntPanel from './components/HuntPanel';
 import React from 'react';
-import WalletInfo from './components/WalletInfo';
+import HuntPanel from './HuntPanel';
 
 function App() {
   return (
-    <div style={{ background: '#000', minHeight: '100vh', padding: '30px', color: '#fff' }}>
-      <h1>BTC Hunt - Testnet</h1>
-      <WalletInfo />
+    <div style={{ fontFamily: 'Arial', padding: 20, backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
+      <h1>💰 BTC Hunt - Caça ao Malote</h1>
+      <p>Encontre satoshis escondidos! A cada 10 erros, um desafio mental ou pausa 😎</p>
+      <HuntPanel />
     </div>
   );
 }
