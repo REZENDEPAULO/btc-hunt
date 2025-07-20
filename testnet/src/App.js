@@ -1,16 +1,13 @@
 import React from 'react';
-import WalletGenerator from './components/WalletGenerator';
 import WalletInfo from './components/WalletInfo';
 
-const App = () => {
+function App() {
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ background: '#000', minHeight: '100vh', padding: '30px', color: '#fff' }}>
       <h1>BTC Hunt - Testnet</h1>
-      <WalletGenerator />
-      <hr />
       <WalletInfo />
     </div>
   );
-};
+}
 
 export default App;
