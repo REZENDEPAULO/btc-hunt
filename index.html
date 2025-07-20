@@ -157,7 +157,7 @@
 </div>
 
 <script>
-  // --- Variáveis globais ---
+  // Variáveis
   const loginDiv = document.getElementById('login');
   const gameDiv = document.getElementById('game');
   const loginBtn = document.getElementById('loginBtn');
@@ -176,40 +176,33 @@
   const ctx = fireworksCanvas.getContext('2d');
 
   let currentUser = null;
-  let users = JSON.parse(localStorage.getItem('btcUsers') || '{}');
+  let users = {};
+  try {
+    users = JSON.parse(localStorage.getItem('btcUsers')) || {};
+  } catch(e) {
+    users = {};
+  }
   let saldoTotal = 0;
   let historico = [];
 
-  // --- Sons gerados por IA embutidos como base64 (reduzido) ---
-  // Vidro quebrando (chave falsa)
-  const audioVidroBase64 = "data:audio/mp3;base64,//base64doVidroAqui"; 
-  const vidroSound = new Audio(audioVidroBase64);
+  // Sons placeholders para evitar erros (adicione seus arquivos reais depois)
+  const vidroSound = new Audio(); // Pode definir src depois
+  const vozElogio = new Audio();
+  const vozAprendizado = new Audio();
+  const vozMotivacional = new Audio();
+  const trapMusic = new Audio();
 
-  // Voz feminina sensual (elogios)
-  const audioElogioBase64 = "data:audio/mp3;base64,//base64ElogioAqui";
-  const vozElogio = new Audio(audioElogioBase64);
-
-  // Voz masculina firme (aprendizado)
-  const audioAprendizadoBase64 = "data:audio/mp3;base64,//base64AprendizadoAqui";
-  const vozAprendizado = new Audio(audioAprendizadoBase64);
-
-  // Voz senhor idoso (motivacional)
-  const audioMotivacionalBase64 = "data:audio/mp3;base64,//base64MotivacionalAqui";
-  const vozMotivacional = new Audio(audioMotivacionalBase64);
-
-  // Música trap com graves (chave verdadeira)
-  const audioTrapBase64 = "data:audio/mp3;base64,//base64TrapAqui";
-  const trapMusic = new Audio(audioTrapBase64);
-
-  // --- Funções ---
-
+  // Função salvar dados no localStorage
   function saveUsers() {
     localStorage.setItem('btcUsers', JSON.stringify(users));
   }
 
+  // Função login / cadastro
   function login() {
     const user = usernameInput.value.trim();
     const pass = passwordInput.value.trim();
+
+    console.log("Tentativa login:", user, pass);
 
     if (!user || !pass) {
       loginStatus.textContent = 'Por favor, preencha usuário e senha.';
@@ -235,6 +228,7 @@
     saveUsers();
   }
 
+  // Logout
   function logout() {
     currentUser = null;
     saldoTotal = 0;
@@ -246,6 +240,7 @@
     gameDiv.classList.add('hidden');
   }
 
+  // Mostrar tela do jogo
   function showGame() {
     loginDiv.classList.add('hidden');
     gameDiv.classList.remove('hidden');
@@ -255,6 +250,53 @@
     clearCanvas();
   }
 
+  // Atualiza saldo na tela
   function updateSaldo() {
     saldoTotalEl.textContent = `Saldo: ${saldoTotal} sats`;
- 
+  }
+
+  // Atualiza histórico na tela
+  function updateHistorico() {
+    historicoEl.innerHTML = '<strong>Histórico de achados:</strong><br/>' + historico.map((h, i) =>
+      `${i + 1}: ${h.sats} sats — <code>${h.address}</code>`
+    ).join('<br/>');
+  }
+
+  // Função limpar canvas de fogos
+  function clearCanvas() {
+    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+  }
+
+  // Ajusta canvas para tela cheia
+  function resizeCanvas() {
+    fireworksCanvas.width = window.innerWidth;
+    fireworksCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Gera endereço falso (para simular)
+  function gerarEnderecoFake() {
+    const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    let addr = '';
+    for(let i=0; i<34; i++) {
+      addr += chars.charAt(Math.floor(Math.random()*chars.length));
+    }
+    return addr;
+  }
+
+  let spinning = false;
+  let rotation = 0;
+
+  spinBtn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    resultDiv.textContent = '';
+    keyImage.classList.add('hidden');
+
+    // gira a roleta com rotação aleatória entre 3 e 6 voltas
+    const extraRotation = Math.floor(Math.random() * 360);
+    rotation += 360 * (3 + Math.floor(Math.random() * 4)) + extraRotation;
+
+    roulette.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
+    
