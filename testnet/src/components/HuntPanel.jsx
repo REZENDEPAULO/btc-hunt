@@ -1,3 +1,4 @@
+import HuntPanel from './components/HuntPanel';
 import React, { useState } from 'react';
 
 function HuntPanel() {
