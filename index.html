@@ -157,7 +157,7 @@
 </div>
 
 <script>
-  // Variáveis
+  // --- Variáveis globais ---
   const loginDiv = document.getElementById('login');
   const gameDiv = document.getElementById('game');
   const loginBtn = document.getElementById('loginBtn');
@@ -176,33 +176,27 @@
   const ctx = fireworksCanvas.getContext('2d');
 
   let currentUser = null;
-  let users = {};
-  try {
-    users = JSON.parse(localStorage.getItem('btcUsers')) || {};
-  } catch(e) {
-    users = {};
-  }
+  let users = JSON.parse(localStorage.getItem('btcUsers') || '{}');
   let saldoTotal = 0;
   let historico = [];
 
-  // Sons placeholders para evitar erros (adicione seus arquivos reais depois)
-  const vidroSound = new Audio(); // Pode definir src depois
-  const vozElogio = new Audio();
-  const vozAprendizado = new Audio();
-  const vozMotivacional = new Audio();
-  const trapMusic = new Audio();
+  // Sons (base64 placeholders para você substituir futuramente)
+  // Áudios curtos para não travar o código. Você pode trocar esses dados base64 depois.
+  const vidroSound = new Audio('data:audio/mp3;base64,//uQx...');
+  const vozElogio = new Audio('data:audio/mp3;base64,//uQx...');
+  const vozAprendizado = new Audio('data:audio/mp3;base64,//uQx...');
+  const vozMotivacional = new Audio('data:audio/mp3;base64,//uQx...');
+  const trapMusic = new Audio('data:audio/mp3;base64,//uQx...');
 
-  // Função salvar dados no localStorage
+  // Salva usuários no localStorage
   function saveUsers() {
     localStorage.setItem('btcUsers', JSON.stringify(users));
   }
 
-  // Função login / cadastro
+  // Login e cadastro
   function login() {
     const user = usernameInput.value.trim();
     const pass = passwordInput.value.trim();
-
-    console.log("Tentativa login:", user, pass);
 
     if (!user || !pass) {
       loginStatus.textContent = 'Por favor, preencha usuário e senha.';
@@ -228,7 +222,6 @@
     saveUsers();
   }
 
-  // Logout
   function logout() {
     currentUser = null;
     saldoTotal = 0;
@@ -238,9 +231,9 @@
     loginStatus.textContent = '';
     loginDiv.classList.remove('hidden');
     gameDiv.classList.add('hidden');
+    clearCanvas();
   }
 
-  // Mostrar tela do jogo
   function showGame() {
     loginDiv.classList.add('hidden');
     gameDiv.classList.remove('hidden');
@@ -250,53 +243,111 @@
     clearCanvas();
   }
 
-  // Atualiza saldo na tela
   function updateSaldo() {
     saldoTotalEl.textContent = `Saldo: ${saldoTotal} sats`;
   }
 
-  // Atualiza histórico na tela
   function updateHistorico() {
-    historicoEl.innerHTML = '<strong>Histórico de achados:</strong><br/>' + historico.map((h, i) =>
-      `${i + 1}: ${h.sats} sats — <code>${h.address}</code>`
-    ).join('<br/>');
+    if (historico.length === 0) {
+      historicoEl.innerHTML = '<strong>Histórico de achados:</strong><br />Nada ainda.';
+    } else {
+      historicoEl.innerHTML = '<strong>Histórico de achados:</strong><br/>' + historico.map((h, i) =>
+        `${i + 1}: ${h.sats} sats — <code>${h.address}</code>`
+      ).join('<br/>');
+    }
   }
 
-  // Função limpar canvas de fogos
-  function clearCanvas() {
-    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
-  }
-
-  // Ajusta canvas para tela cheia
-  function resizeCanvas() {
-    fireworksCanvas.width = window.innerWidth;
-    fireworksCanvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  // Gera endereço falso (para simular)
+  // Função para gerar um endereço BTC fake (apenas string aleatória)
   function gerarEnderecoFake() {
     const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    let addr = '';
-    for(let i=0; i<34; i++) {
-      addr += chars.charAt(Math.floor(Math.random()*chars.length));
+    let addr = '1';
+    for (let i = 0; i < 33; i++) {
+      addr += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return addr;
   }
 
+  // Variáveis para roleta
   let spinning = false;
   let rotation = 0;
 
-  spinBtn.addEventListener('click', () => {
-    if (spinning) return;
-    spinning = true;
-    resultDiv.textContent = '';
-    keyImage.classList.add('hidden');
+  // Função para animar fogos simples
+  let fireworks = [];
+  class Firework {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.particles = [];
+      this.createParticles();
+    }
+    createParticles() {
+      for (let i = 0; i < 30; i++) {
+        this.particles.push({
+          x: this.x,
+          y: this.y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          alpha: 1,
+          radius: 2 + Math.random() * 2,
+          color: `hsl(${Math.random()*360}, 100%, 60%)`
+        });
+      }
+    }
+    update() {
+      this.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.02;
+        p.radius *= 0.96;
+      });
+      this.particles = this.particles.filter(p => p.alpha > 0);
+    }
+    draw(ctx) {
+      this.particles.forEach(p => {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${hexToRgb(p.color)},${p.alpha})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+        ctx.fill();
+      });
+    }
+    isDead() {
+      return this.particles.length === 0;
+    }
+  }
 
-    // gira a roleta com rotação aleatória entre 3 e 6 voltas
-    const extraRotation = Math.floor(Math.random() * 360);
-    rotation += 360 * (3 + Math.floor(Math.random() * 4)) + extraRotation;
+  // Converte hsl para rgb para usar com alpha
+  function hexToRgb(hsl) {
+    // Peguei direto para efeito legal, simplificado
+    // Para exemplo visual rápido
+    // Só troca para cor fixa:
+    return '255,215,0'; // dourado
+  }
 
-    roulette.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
-    
+  // Animação dos fogos
+  function animateFireworks() {
+    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    fireworks.forEach((fw, i) => {
+      fw.update();
+      fw.draw(ctx);
+      if (fw.isDead()) fireworks.splice(i, 1);
+    });
+    if (fireworks.length > 0) requestAnimationFrame(animateFireworks);
+    else fireworksCanvas.classList.add('hidden');
+  }
+
+  function createFireworks() {
+    fireworksCanvas.classList.remove('hidden');
+    for (let i = 0; i < 5; i++) {
+      fireworks.push(new Firework(Math.random()*fireworksCanvas.width, Math.random()*fireworksCanvas.height/2));
+    }
+    animateFireworks();
+  }
+
+  function clearCanvas() {
+    fireworks = [];
+    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+  }
+
+  // Ajusta tamanho
