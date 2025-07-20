@@ -350,4 +350,169 @@
     ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
   }
 
-  // Ajusta tamanho
+ // Ajusta tamanho do canvas para fogos
+function ajustarCanvas() {
+  fireworksCanvas.width = window.innerWidth;
+  fireworksCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', ajustarCanvas);
+ajustarCanvas();
+
+// Dados da roleta (12 fatias de 30 graus)
+const sectors = [
+  { type: 'goldKey', label: 'Chave Dourada' },   // 30%
+  { type: 'goldKey', label: 'Chave Dourada' },
+  { type: 'goldKey', label: 'Chave Dourada' },
+  { type: 'messageLearn', label: 'Aprendizado' },
+  { type: 'messageLearn', label: 'Aprendizado' },
+  { type: 'messageMotivate', label: 'Mensagem Motivacional' },
+  { type: 'messageMotivate', label: 'Mensagem Motivacional' },
+  { type: 'compliment', label: 'Elogio' },
+  { type: 'compliment', label: 'Elogio' },
+  { type: 'btc100', label: '100 BTC' },  // 0% chance (fake)
+  { type: 'btcSmall', label: 'Pequeno BTC' },
+  { type: 'btcSmall', label: 'Pequeno BTC' },
+];
+
+// Mensagens para cada categoria
+const mensagensAprendizado = [
+  "Invista sempre no seu conhecimento financeiro.",
+  "Tecnologia blockchain revolucionará o mundo.",
+  "Disciplina e foco são a chave do sucesso.",
+  "Economize hoje para garantir o amanhã.",
+  "Aprender nunca acaba, esteja sempre aberto."
+];
+const mensagensMotivacionais = [
+  "Você é capaz de conquistar tudo!",
+  "Acredite em si mesmo e vá além.",
+  "Cada passo te leva mais perto do sonho.",
+  "Persistência transforma sonhos em realidade.",
+  "Nunca desista, o melhor está por vir."
+];
+const elogios = [
+  "Você está arrasando, campeão!",
+  "Que jogada incrível, parabéns!",
+  "Seu esforço está dando frutos!",
+  "Continue assim, você é fera!",
+  "Muito bom, continue evoluindo!"
+];
+
+// Gera número aleatório com base em pesos para 0% chance do 100 BTC
+function escolherSetor() {
+  // 100 BTC tem 0% chance, então ignoramos ele na escolha direta
+  // Distribuímos chances entre os outros 11 setores
+  const pesoSetores = sectors.map(s => s.type === 'btc100' ? 0 : 1);
+  const totalPeso = pesoSetores.reduce((a,b) => a+b, 0);
+  const rnd = Math.random() * totalPeso;
+  let acumulado = 0;
+  for(let i=0; i<sectors.length; i++) {
+    acumulado += pesoSetores[i];
+    if(rnd < acumulado) return sectors[i];
+  }
+  // Fallback
+  return sectors[0];
+}
+
+// Lógica da roleta e resultado
+spinBtn.addEventListener('click', () => {
+  if (spinning) return;
+  spinning = true;
+  resultDiv.textContent = 'Girando...';
+  keyImage.classList.add('hidden');
+  fireworksCanvas.classList.add('hidden');
+  clearCanvas();
+
+  // Gira roleta entre 3 e 6 voltas + ângulo aleatório do setor
+  const voltas = Math.floor(Math.random() * 3) + 3;
+  const setor = escolherSetor();
+  const indexSetor = sectors.indexOf(setor);
+  const grausPorSetor = 360 / sectors.length;
+  // Calcula ângulo final da roleta
+  const finalAngle = 360 * voltas + indexSetor * grausPorSetor + grausPorSetor / 2;
+
+  roulette.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
+  roulette.style.transform = `rotate(${-finalAngle}deg)`;
+
+  // Após animação
+  setTimeout(() => {
+    spinning = false;
+    mostrarResultado(setor);
+    // Reset roleta para posição original sem animação para próxima rodada
+    roulette.style.transition = 'none';
+    roulette.style.transform = 'rotate(0deg)';
+  }, 4100);
+});
+
+// Função que mostra o resultado e lida com ações específicas
+function mostrarResultado(setor) {
+  if (setor.type === 'goldKey') {
+    resultDiv.textContent = 'Você ganhou uma Chave Dourada! Clique nela para abrir.';
+    keyImage.classList.remove('hidden');
+    // Aguarda clique para abrir chave
+  } else if (setor.type === 'btc100') {
+    // Nunca vai cair, mas para segurança
+    resultDiv.textContent = 'Parabéns! Você ganhou 100 BTC (Simulado)';
+  } else if (setor.type === 'btcSmall') {
+    const ganho = Math.floor(Math.random() * 50) + 1;
+    saldoTotal += ganho;
+    resultDiv.textContent = `Você ganhou ${ganho} sats!`;
+    registrarHistorico(ganho, gerarEnderecoFake());
+    updateSaldo();
+    updateHistorico();
+  } else if (setor.type === 'messageLearn') {
+    const msg = mensagensAprendizado[Math.floor(Math.random() * mensagensAprendizado.length)];
+    resultDiv.textContent = msg;
+    vozAprendizado.play();
+  } else if (setor.type === 'messageMotivate') {
+    const msg = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+    resultDiv.textContent = msg;
+    vozMotivacional.play();
+  } else if (setor.type === 'compliment') {
+    const msg = elogios[Math.floor(Math.random() * elogios.length)];
+    resultDiv.textContent = msg;
+    vozElogio.play();
+  } else {
+    resultDiv.textContent = 'Tente novamente!';
+  }
+}
+
+// Evento para abrir a chave dourada
+keyImage.addEventListener('click', () => {
+  keyImage.classList.add('hidden');
+  // 50% chance da chave ser verdadeira
+  const chaveVerdadeira = Math.random() < 0.5;
+  if (chaveVerdadeira) {
+    trapMusic.play();
+    resultDiv.textContent = 'Chave verdadeira! Parabéns! 🎉';
+    createFireworks();
+    // Premiação pequena simbólica
+    const ganho = 100;
+    saldoTotal += ganho;
+    registrarHistorico(ganho, gerarEnderecoFake());
+    updateSaldo();
+    updateHistorico();
+  } else {
+    vidroSound.play();
+    resultDiv.textContent = 'Chave falsa! Quebrou como vidro!';
+    // Pode criar efeito visual de vidro quebrando aqui (não implementado)
+  }
+});
+
+// Registra no histórico de ganhos
+function registrarHistorico(sats, endereco) {
+  historico.push({ sats, address: endereco });
+  users[currentUser].saldo = saldoTotal;
+  users[currentUser].historico = historico;
+  saveUsers();
+}
+
+// Eventos login/logout
+loginBtn.addEventListener('click', login);
+logoutBtn.addEventListener('click', logout);
+
+// Inicializa o jogo
+updateSaldo();
+updateHistorico();
+</script>
+</body>
+</html>
