@@ -1,90 +1,260 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BTC Hunt - por Paulo Rezende</title>
-  <style>
-    body { font-family: Arial; background-color: #f1f1f1; text-align: center; padding: 50px; }
-    #game, #welcome { display: none; }
-    .input { margin: 10px; padding: 10px; width: 200px; }
-    .button { padding: 10px 20px; cursor: pointer; margin: 5px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BTC Hunt - Paulo Rezende</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    background: #111;
+    color: #fff;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh;
+  }
+  .hidden { display: none; }
+  #login, #game {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  #login {
+    margin-top: 100px;
+  }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+  }
+  button {
+    background: gold;
+    border: none;
+    color: black;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 0 8px gold;
+    margin-top: 10px;
+  }
+  #status {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #6b5128;
+    text-align: center;
+  }
+  #roulette-container {
+    margin: 30px 0;
+    position: relative;
+    width: 250px; height: 250px;
+  }
+  #roulette {
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    border: 6px solid gold;
+    background: conic-gradient(
+      gold 0deg 30deg,
+      darkgoldenrod 30deg 60deg,
+      gold 60deg 90deg,
+      darkgoldenrod 90deg 120deg,
+      gold 120deg 150deg,
+      darkgoldenrod 150deg 180deg,
+      gold 180deg 210deg,
+      darkgoldenrod 210deg 240deg,
+      gold 240deg 270deg,
+      darkgoldenrod 270deg 300deg,
+      gold 300deg 330deg,
+      darkgoldenrod 330deg 360deg
+    );
+    transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  #pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; 
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid red;
+    z-index: 10;
+  }
+  #spinBtn {
+    margin-top: 15px;
+  }
+  #result {
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 16px;
+    min-height: 100px;
+  }
+  #keyImage {
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100px;
+    user-select: none;
+  }
+  #saldoTotal {
+    font-size: 20px;
+    margin-top: 20px;
+    font-weight: bold;
+  }
+  #historico {
+    margin-top: 30px;
+    text-align: left;
+    max-width: 100%;
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+    height: 160px;
+    overflow-y: auto;
+    font-size: 14px;
+    font-family: monospace;
+  }
+  #fireworksCanvas {
+    position: fixed;
+    top:0; left:0; width:100vw; height:100vh;
+    pointer-events: none;
+    z-index: 9999;
+  }
+</style>
 </head>
 <body>
 
-  <div id="login">
-    <h2>BTC Hunt - por Paulo Rezende</h2>
-    <input id="user" class="input" placeholder="Usuário" /><br>
-    <input id="pass" class="input" type="password" placeholder="Senha" /><br>
-    <button class="button" onclick="login()">Entrar</button>
-    <button class="button" onclick="register()">Criar Conta</button>
-    <p id="loginStatus"></p>
+<div id="login">
+  <h2>Entrar no BTC Hunt</h2>
+  <input type="text" id="username" placeholder="Nome de jogador" />
+  <input type="password" id="password" placeholder="Senha" />
+  <button id="loginBtn">Entrar / Cadastrar</button>
+  <div id="loginStatus"></div>
+</div>
+
+<div id="game" class="hidden">
+  <h1>BTC Hunt</h1>
+  <div id="saldoTotal">Saldo: 0 sats</div>
+  <div id="roulette-container">
+    <div id="pointer"></div>
+    <div id="roulette"></div>
   </div>
+  <button id="spinBtn">Girar Roleta</button>
+  <div id="result"></div>
+  <img id="keyImage" class="hidden" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxLVd9AAAABHNCSVQICAgIfAhkiAAAAnRJREFUaIHt3cENgjAYxvF//1U3Q7ULSbbYk48kLZtQhU8cLPkYUB1Zw7Xlt4Q91U1r09OCcBBP8l2ApsBX5m7SxOqMqafpNHbFjAUXAGuhNJnshExnK8n3oAARsgMhABMgAQyQH3J+6T1z0d1J5HkDCq57vtLwgAgRggggAAAQQCCCAAAEEEEAAAQQQgQIEAC7UBsiW+HEG1UPpMeMtcN63U92zG1f57NgAh8j5YX0HXkxIqWcgPrfEAiC06TtDdMxB4LY24WxG/pxS1+ZlyGLmMJuC9iDHx5YzshbDrhk7FcQr5nYN1C9Nz83qCW7r09L/ckFzm48NIKVjR3Fjj4wZSCFwi5fK2DCeEzFbW+DDABSCNwZXzIr91yxJzmGAkmBY8s1lKJAKlwzntxZ3mkxHk8qkD0lfX69ovb46AMqzq9z59fPbCxewW/KV5HkMApknPhN6S9oVxvTQHw7BhgDqHCWfIBADILw3YJKCIzi4VvYYBiDYxH5fBGCG6IoUFBWCcRsQ+UIIxA6Eg+QZhEHKLyCAhYJvMp8EaHDJZEZ2fRBhKHAsYFX5RyD2JCYQQq8pHEMrJfU8wCwsh4dhxj3Aghx52PCBBhg3HiD3ZyRyCy1DCBcMEPDBkRxy+CAIQhMAAg0gkP65u+n4+6HvXhxGghQ6NwEEfRQ7aAAAgT4YJNZJJjKcT0LZYZXfXczhB8fjxxQgh4EAACCCBAAIIIEAAgggQACCCBAAAIIIEAACCGxfwA63oX+8/lnD/gAAAABJRU5ErkJggg==" alt="Chave Dourada" />
 
-  <div id="welcome">
-    <h2>Bem-vindo, <span id="playerName"></span>!</h2>
-    <p>Saldo: <span id="btcBalance">0</span> sats</p>
-    <button class="button" onclick="hunt()">Caçar BTC</button>
-    <p id="huntResult"></p>
-    <button class="button" onclick="logout()">Sair</button>
-  </div>
+  <canvas id="fireworksCanvas" class="hidden"></canvas>
 
-  <script>
-    const users = JSON.parse(localStorage.getItem('btcUsers')) || {};
-    const btcRewards = [0, 10, 50, 100, 250]; // Valores de satoshis
+  <div id="historico"><strong>Histórico de achados:</strong><br /></div>
+  <button id="logoutBtn" style="margin-top: 20px; background: #c00; color: white;">Sair</button>
+</div>
 
-    function login() {
-      const u = user.value.trim();
-      const p = pass.value.trim();
-      if (users[u] && users[u].senha === p) {
-        localStorage.setItem("btcUser", u);
-        loadGame();
-      } else {
-        loginStatus.innerText = "Usuário ou senha inválidos.";
+<script>
+  // --- Variáveis globais ---
+  const loginDiv = document.getElementById('login');
+  const gameDiv = document.getElementById('game');
+  const loginBtn = document.getElementById('loginBtn');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const loginStatus = document.getElementById('loginStatus');
+  const spinBtn = document.getElementById('spinBtn');
+  const roulette = document.getElementById('roulette');
+  const pointer = document.getElementById('pointer');
+  const resultDiv = document.getElementById('result');
+  const keyImage = document.getElementById('keyImage');
+  const saldoTotalEl = document.getElementById('saldoTotal');
+  const historicoEl = document.getElementById('historico');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const fireworksCanvas = document.getElementById('fireworksCanvas');
+  const ctx = fireworksCanvas.getContext('2d');
+
+  let currentUser = null;
+  let users = JSON.parse(localStorage.getItem('btcUsers') || '{}');
+  let saldoTotal = 0;
+  let historico = [];
+
+  // --- Sons gerados por IA embutidos como base64 (reduzido) ---
+  // Vidro quebrando (chave falsa)
+  const audioVidroBase64 = "data:audio/mp3;base64,//base64doVidroAqui"; 
+  const vidroSound = new Audio(audioVidroBase64);
+
+  // Voz feminina sensual (elogios)
+  const audioElogioBase64 = "data:audio/mp3;base64,//base64ElogioAqui";
+  const vozElogio = new Audio(audioElogioBase64);
+
+  // Voz masculina firme (aprendizado)
+  const audioAprendizadoBase64 = "data:audio/mp3;base64,//base64AprendizadoAqui";
+  const vozAprendizado = new Audio(audioAprendizadoBase64);
+
+  // Voz senhor idoso (motivacional)
+  const audioMotivacionalBase64 = "data:audio/mp3;base64,//base64MotivacionalAqui";
+  const vozMotivacional = new Audio(audioMotivacionalBase64);
+
+  // Música trap com graves (chave verdadeira)
+  const audioTrapBase64 = "data:audio/mp3;base64,//base64TrapAqui";
+  const trapMusic = new Audio(audioTrapBase64);
+
+  // --- Funções ---
+
+  function saveUsers() {
+    localStorage.setItem('btcUsers', JSON.stringify(users));
+  }
+
+  function login() {
+    const user = usernameInput.value.trim();
+    const pass = passwordInput.value.trim();
+
+    if (!user || !pass) {
+      loginStatus.textContent = 'Por favor, preencha usuário e senha.';
+      return;
+    }
+
+    if (!users[user]) {
+      users[user] = { password: pass, saldo: 0, historico: [] };
+      loginStatus.textContent = 'Usuário cadastrado! Entrando...';
+    } else {
+      if (users[user].password !== pass) {
+        loginStatus.textContent = 'Senha incorreta!';
+        return;
       }
+      loginStatus.textContent = 'Bem-vindo de volta, ' + user + '!';
     }
+    currentUser = user;
+    saldoTotal = users[user].saldo;
+    historico = users[user].historico;
+    updateSaldo();
+    updateHistorico();
+    showGame();
+    saveUsers();
+  }
 
-    function register() {
-      const u = user.value.trim();
-      const p = pass.value.trim();
-      if (!u || !p) return alert("Preencha usuário e senha.");
-      if (users[u]) return alert("Usuário já existe.");
-      users[u] = { senha: p, saldo: 0 };
-      localStorage.setItem('btcUsers', JSON.stringify(users));
-      alert("Conta criada com sucesso. Faça login.");
-    }
+  function logout() {
+    currentUser = null;
+    saldoTotal = 0;
+    historico = [];
+    usernameInput.value = '';
+    passwordInput.value = '';
+    loginStatus.textContent = '';
+    loginDiv.classList.remove('hidden');
+    gameDiv.classList.add('hidden');
+  }
 
-    function loadGame() {
-      const currentUser = localStorage.getItem('btcUser');
-      if (!currentUser) return;
-      playerName.innerText = currentUser;
-      btcBalance.innerText = users[currentUser].saldo;
-      login.style.display = "none";
-      welcome.style.display = "block";
-    }
+  function showGame() {
+    loginDiv.classList.add('hidden');
+    gameDiv.classList.remove('hidden');
+    resultDiv.textContent = '';
+    keyImage.classList.add('hidden');
+    fireworksCanvas.classList.add('hidden');
+    clearCanvas();
+  }
 
-    function hunt() {
-      const currentUser = localStorage.getItem('btcUser');
-      if (!currentUser) return;
-      const premio = btcRewards[Math.floor(Math.random() * btcRewards.length)];
-      if (premio > 0) {
-        users[currentUser].saldo += premio;
-        localStorage.setItem('btcUsers', JSON.stringify(users));
-        btcBalance.innerText = users[currentUser].saldo;
-        huntResult.innerText = `🎉 Você encontrou ${premio} satoshis escondidos!`;
-      } else {
-        huntResult.innerText = "Nada encontrado dessa vez... tente novamente!";
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('btcUser');
-      location.reload();
-    }
-
-    window.onload = loadGame;
-  </script>
-
-</body>
-</html>
+  function updateSaldo() {
+    saldoTotalEl.textContent = `Saldo: ${saldoTotal} sats`;
+ 
