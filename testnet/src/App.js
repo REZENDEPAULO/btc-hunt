@@ -1,6 +1,7 @@
+import HuntPanel from './components/HuntPanel';
 import React from 'react';
 import WalletInfo from './components/WalletInfo';
-import HuntPanel from './components/HuntPanel';
+
 function App() {
   return (
     <div style={{ background: '#000', minHeight: '100vh', padding: '30px', color: '#fff' }}>
