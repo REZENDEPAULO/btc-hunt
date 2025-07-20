@@ -1,23 +1,18 @@
-import React from 'react';
-import * as bitcoin from 'bitcoinjs-lib';
-import { useWallet } from '../wallet';
+import { createContext, useContext, useState } from 'react';
 
-export default function GenerateWallet() {
-  const { setAddress, setWIF } = useWallet();
+const WalletContext = createContext();
 
-  const generateWallet = () => {
-    const keyPair = bitcoin.ECPair.makeRandom({ network: bitcoin.networks.testnet });
-    const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: bitcoin.networks.testnet });
-    const wif = keyPair.toWIF();
-
-    setAddress(address);
-    setWIF(wif);
-  };
+export function WalletProvider({ children }) {
+  const [address, setAddress] = useState('');
+  const [wif, setWif] = useState('');
 
   return (
-    <div>
-      <h2>Gerar Carteira BTC (Testnet)</h2>
-      <button onClick={generateWallet}>Gerar Carteira</button>
-    </div>
+    <WalletContext.Provider value={{ address, setAddress, wif, setWif }}>
+      {children}
+    </WalletContext.Provider>
   );
+}
+
+export function useWallet() {
+  return useContext(WalletContext);
 }
